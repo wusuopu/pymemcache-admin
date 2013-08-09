@@ -22,20 +22,17 @@ import memcache
 
 
 class Client(object):
+
     def __init__(self, servers, **kwargs):
         super(Client, self).__init__()
-        self.servers = servers
         self.client = memcache.Client(servers, **kwargs)
 
     def get_slabs_list(self):
-        slabs = self.client.get_slabs()
+        slabs = self.get_slabs()
         slabs_list = []
         for dt in slabs:
             slabs_list += dt[1].keys()
         return set(slabs_list)
-
-    def get_stats(self):
-        return self.client.get_stats()
 
     def get_cachedump_stats(self, slabs_id, limit_num=0):
         '''
@@ -43,13 +40,15 @@ class Client(object):
         根据slab_id输出相同的slab_id中的item信息
         limit_num表示获取多少条记录，0为不限制。
         '''
-        return self.client.get_stats('cachedump %d %d' % (slabs_id, limit_num))
+        return self.get_stats('cachedump %d %d' % (slabs_id, limit_num))
 
-    def set_value(self, key, value):
-        return self.client.set(key, value)
-
-    def get_value(self, key):
-        return self.client.get(key)
+    set_value = property(lambda self: self.client.set)
+    get_value = property(lambda self: self.client.get)
+    get_slabs = property(lambda self: self.client.get_slabs)
+    get_stats = property(lambda self: self.client.get_stats)
+    set_servers = property(lambda self: self.client.set_servers)
+    servers = property(lambda self: self.client.servers)
+    disconnect_all = property(lambda self: self.client.disconnect_all)
 
 if __name__ == '__main__':
     client = Client(['localhost:11211'])
